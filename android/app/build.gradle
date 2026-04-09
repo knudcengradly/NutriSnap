@@ -24,6 +24,15 @@ android {
     }
 }
 
+// APK name (applicationVariants.outputFileName is ignored on AGP 8+)
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.outputs.each { output ->
+            output.outputFileName.set("NutriSnap.apk")
+        }
+    }
+}
+
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'

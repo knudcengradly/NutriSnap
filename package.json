@@ -9,7 +9,9 @@
     "build": "vite build",
     "cap:sync": "npx cap sync",
     "cap:open:android": "npx cap open android",
-    "android:build": "npm run build && npx cap sync android"
+    "android:build": "npm run build && npx cap sync android",
+    "android:studio": "npm run android:build && npx cap open android",
+    "android:icons": "npx @capacitor/assets generate --android --assetPath resources --iconBackgroundColor \"#1B4332\" --iconBackgroundColorDark \"#1B4332\" --splashBackgroundColor \"#1B4332\" --splashBackgroundColorDark \"#0d1f18\""
   },
   "dependencies": {
     "@capacitor/android": "^7.2.0",
@@ -24,6 +26,7 @@
     "react-router-dom": "^6.8.1"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^7.2.0",
     "@types/node": "^25.5.2",
     "@types/react": "18.2.0",

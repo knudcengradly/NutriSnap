@@ -1,4 +1,7 @@
+import { Capacitor } from "@capacitor/core";
 import { useEffect, useState } from "react";
+
+const isCapacitorNative = Capacitor.isNativePlatform();
 
 /** 0–1 pseudo-random from index + salt (stable across renders). */
 function rnd(i: number, salt: number): number {
@@ -40,20 +43,22 @@ const glows = Array.from({ length: GLOW_COUNT }, (_, i) => {
 export const ScrollColumnWash = () => (
   <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
     <div className="absolute inset-0 overflow-hidden bg-[linear-gradient(180deg,rgb(255,255,255)_0%,rgba(45,125,111,0.025)_42%,rgba(31,110,95,0.055)_100%)]">
-      {glows.map((g, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full -translate-x-1/2 -translate-y-1/2"
-          style={{
-            top: g.top,
-            left: g.left,
-            width: g.width,
-            height: g.height,
-            background: g.background,
-            filter: `blur(${g.blur}px)`,
-          }}
-        />
-      ))}
+      {/* Heavy CSS blurs destroy WebView scroll FPS on device; keep full effect on web only. */}
+      {!isCapacitorNative &&
+        glows.map((g, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full -translate-x-1/2 -translate-y-1/2"
+            style={{
+              top: g.top,
+              left: g.left,
+              width: g.width,
+              height: g.height,
+              background: g.background,
+              filter: `blur(${g.blur}px)`,
+            }}
+          />
+        ))}
     </div>
   </div>
 );
@@ -166,18 +171,21 @@ const fruits: FruitItem[] = [...baseFruits, ...topRightExtras].map((f) => ({
  * Sits above wash (z-1) and below main UI (z-10).
  */
 export const FixedFruitDeco = () => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(isCapacitorNative);
   useEffect(() => {
+    if (isCapacitorNative) return;
     const t = setTimeout(() => setVisible(true), 50);
     return () => clearTimeout(t);
   }, []);
+
+  const decoFruits = isCapacitorNative ? fruits.slice(0, 12) : fruits;
 
   return (
     <div
       className="pointer-events-none absolute inset-0 z-[1] w-full overflow-hidden"
       aria-hidden
     >
-      {fruits.map((f, i) => (
+      {decoFruits.map((f, i) => (
         <span
           key={i}
           className="absolute select-none leading-none drop-shadow-sm"
@@ -185,14 +193,16 @@ export const FixedFruitDeco = () => {
             left: f.left,
             top: f.top,
             fontSize: f.fontSize,
-            opacity: visible ? 0.3 : 0,
-            transform: visible
+            opacity: isCapacitorNative ? 0.22 : visible ? 0.3 : 0,
+            transform: isCapacitorNative
               ? `translate3d(0,0,0) rotate(${f.rotateDeg}deg)`
-              : `translate3d(0,-18px,0) rotate(${f.rotateDeg}deg)`,
-            transitionProperty: "opacity, transform",
-            transitionDuration: "0.75s",
-            transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-            transitionDelay: `${f.delayMs}ms`,
+              : visible
+                ? `translate3d(0,0,0) rotate(${f.rotateDeg}deg)`
+                : `translate3d(0,-18px,0) rotate(${f.rotateDeg}deg)`,
+            transition: isCapacitorNative
+              ? "none"
+              : "opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1), transform 0.75s cubic-bezier(0.22, 1, 0.36, 1)",
+            transitionDelay: isCapacitorNative ? "0ms" : `${f.delayMs}ms`,
           }}
           role="presentation"
         >
